@@ -1,10 +1,11 @@
 from abc import abstractmethod
-from bingdog.Util import ExtProcessShellUtil
+from bingdog.Util import ExtProcessShellUtil, ifNone, NullPointerException
+from bingdog.Proxy import ProxyDecorator
+import bingdog.TaskHandler
 class Task(object):
     
     def __init__(self, taskId):
         self.params = dict()
-        self.statement = None
         self._taskId = taskId
     
     @property
@@ -32,13 +33,18 @@ class Task(object):
         else:
             return None
 
+@ProxyDecorator(bingdog.TaskHandler.FlowedInvocationHandler)
 class ShellExecutionTask(Task):
     def __init__(self, taskId):
         super().__init__(taskId)
+        self.statement = None
         self._extUtil = ExtProcessShellUtil()
     
     def run(self):
-        self._extUtil.execute(self._processStatement(self.statement))
+        try:
+            self._extUtil.execute(self._processStatement(ifNone(self.statement)))
+        except NullPointerException as e:
+            raise TaskExecutionException("None statement")
 
 class TaskExecutionException(Exception):
     def __init__(self, message):

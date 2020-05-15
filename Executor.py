@@ -4,9 +4,9 @@ from bingdog.ApplicationConfig import Configurator
 
 class TaskExecutor():
         
-    def execute(self):
+    def execute(self,taskId):
         taskUtil = ConfiguredTaskUtil(Configurator.configuration['flow_conf_file_path'])
-        task = taskUtil.getTask("start")
+        task = taskUtil.getTask(taskId)
         if (task):
             self.__execute(task)
         else:

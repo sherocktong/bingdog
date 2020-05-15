@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from bingdog.Task import Task, TaskExecutionException
+import bingdog.Task 
 from bingdog.Proxy import InvocationHandler
 from bingdog.ApplicationConfig import Configurator
 from bingdog.Util import ifNone, NullPointerException
@@ -60,7 +60,7 @@ class ConfiguredTaskUtil(object):
             
     def __getModuleClassName(self, fullName):
         if len(fullName.split(".")) < 2:
-            raise TaskExecutionException("Invalid Class Name")
+            raise Task.TaskExecutionException("Invalid Class Name")
         else:
             objName = fullName.split(".")[len(fullName.split(".")) - 1]
             objModule = ""
