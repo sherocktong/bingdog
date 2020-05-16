@@ -1,7 +1,7 @@
 from abc import abstractmethod
-from bingdog.Util import ExtProcessShellUtil, ifNone, NullPointerException
-from bingdog.Proxy import ProxyDecorator
-import bingdog.TaskHandler
+from bingdog.util import ExtProcessShellUtil, ifNone, NullPointerException
+from bingproxy.proxy import ProxyDecorator
+from bingdog.taskproxy import FlowedInvocationHandler
 class Task(object):
     
     def __init__(self, taskId):
@@ -28,12 +28,12 @@ class Task(object):
     def _processStatement(self,statement):
         if (statement):
             for key in self.params:
-                statement = statement.replace(key, self.params[key])
+                statement = statement.replace("$" + str(key), str(self.params[key]))
             return statement
         else:
             return None
 
-@ProxyDecorator(bingdog.TaskHandler.FlowedInvocationHandler)
+@ProxyDecorator(FlowedInvocationHandler)
 class ShellExecutionTask(Task):
     def __init__(self, taskId):
         super().__init__(taskId)

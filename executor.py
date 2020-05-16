@@ -1,6 +1,5 @@
-from bingdog.Task import TaskExecutionException
-from bingdog.TaskHandler import ConfiguredTaskUtil
-from bingdog.ApplicationConfig import Configurator
+from bingdog.task import TaskExecutionException
+from bingdog.appconfig import Configurator, ConfiguredTaskUtil
 
 class TaskExecutor():
         
@@ -14,9 +13,12 @@ class TaskExecutor():
     def __execute(self, task):
         if (task):
             try:
+                print("task started: -------" + task.taskId)
                 task.run()
+                print("task finished: ------" + task.taskId)
                 while task.hasNextChild():
-                    self.__execute(task.getNextChild())
+                    childTask = task.getNextChild()
+                    self.__execute(childTask)
                 nextTask = task.getNextTask()
                 if (nextTask):
                     self.__execute(nextTask)
