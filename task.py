@@ -47,5 +47,6 @@ class ShellExecutionTask(Task):
             raise TaskExecutionException("None statement")
 
 class TaskExecutionException(Exception):
-    def __init__(self, message):
+    def __init__(self, message, exception = None):
         super().__init__(message + " has thrown an execution exception.")
+        self.__nestedException = exception

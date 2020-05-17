@@ -1,5 +1,6 @@
 import subprocess
 from abc import abstractmethod
+import logging
 
 class ExtExecutionException(Exception):
     
@@ -26,7 +27,7 @@ class ExtProcessShellUtil(ExtProcessUtil):
 
     def __print(self, text):
         if len(text) <= 500:
-            print(text)
+            logging.info(text)
             
 def ifNone(obj) :
     if obj is None:

@@ -2,11 +2,10 @@ import json
 from bingdog.util import ifNone, NullPointerException
 from bingdog.taskhandler import ConfiguredTaskHandler
 import sys
-import traceback
 
 class Configurator(object):
     configuration = {} 
-    
+
 class ConfiguredTaskUtil(object):
     def __init__(self, filePath):
         with open(filePath, "r") as conf:
@@ -26,15 +25,11 @@ class ConfiguredTaskUtil(object):
         return objModule, objName
     
     def _getClassByName(self, fullName):
-        print("class name " + fullName)
         objModule, objName = self.__getModuleClassName(fullName)
         tokens = objName.split(".")
-        print("hello")
         module = __import__(objModule)
-        print("hello2")
         for token in tokens:
             module = getattr(module, token)
-        print(str(type(module)))
         return module
     
     def _getTaskHandlerName(self, taskId):
@@ -47,13 +42,12 @@ class ConfiguredTaskUtil(object):
     def getTask(self, taskId):
         task = None
         try:
-            print("create task-------: " + taskId)
             className = self._getTaskClassName(taskId)
-            print("get className: ---- " + className)
             taskClass = self._getClassByName(ifNone(className))
-            print("get class: ---- " + str(type(taskClass)))
             task = ifNone(taskClass)().newInstance(taskId)
             task.statement = self._getStatement(taskId)
+        except NullPointerException as e:
+            raise TaskExecutionException("Task ID: " + taskId + ". Incorrect Class Name", e)
         finally:
             return task
 
