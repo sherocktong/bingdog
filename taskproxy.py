@@ -1,6 +1,7 @@
 from bingproxy.proxy import InvocationHandler
-from bingdog.appconfig import ConfiguredTaskUtil, Configurator
-import logging
+from bingdog.appconfig import Configurator
+from bingdog.taskutil import ConfiguredTaskUtil
+from bingdog.logger import Logger
 
 class MappedInvocationHandler(InvocationHandler):
     def __init__(self):
@@ -31,7 +32,7 @@ class MappedInvocationHandler(InvocationHandler):
 class FlowedInvocationHandler(InvocationHandler):
     def __init__(self):
         super().__init__()
-        self.__configuredUtil = ConfiguredTaskUtil(Configurator.configuration['flow_conf_file_path'])
+        self.__configuredUtil = ConfiguredTaskUtil(Configurator.getConfigurator().flowDiagramPath)
         self._taskObjMap = {}
         
     def invoke(self, proxy, func, nestedObj, *args, **kwargs):
@@ -43,7 +44,7 @@ class FlowedInvocationHandler(InvocationHandler):
 
     def _getTaskHandler(self, proxy, nestedObj, *args, **kwargs):
         if self._taskObjMap.get(proxy) is None:
-            logging.info("Class Initialized: " + nestedObj.__class__.__name__)
+            Logger.getLogger(Logger).info("Class Initialized: " + nestedObj.__class__.__name__)
             handlerClass = self.__configuredUtil.getTaskHandlerClass(nestedObj.taskId)
             if handlerClass is None:
                 return None

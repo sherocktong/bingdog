@@ -2,6 +2,7 @@ from abc import abstractmethod
 from bingdog.util import ExtProcessShellUtil, ifNone, NullPointerException
 from bingproxy.proxy import ProxyDecorator
 from bingdog.taskproxy import FlowedInvocationHandler
+
 class Task(object):
     
     def __init__(self, taskId):

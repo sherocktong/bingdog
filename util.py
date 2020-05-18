@@ -12,8 +12,7 @@ class ExtProcessUtil(object):
     @abstractmethod
     def execute(self, statement):
         pass
-        
-    
+
 class ExtProcessShellUtil(ExtProcessUtil):
 
     def execute(self, statement):
@@ -37,3 +36,10 @@ def ifNone(obj) :
     
 class NullPointerException(Exception):
     pass
+    
+def equalsIgnoreCase(str1, str2):
+    if str1 is None or str2 is None:
+        return False
+    str1 = str1.upper()
+    str2 = str2.upper()
+    return str1 == str2
