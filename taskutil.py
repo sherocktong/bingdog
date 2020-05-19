@@ -1,5 +1,5 @@
 import json
-from bingdog.util import ifNone, NullPointerException
+from bingproxy.util import ifNone, NullPointerException
 from bingdog.taskhandler import ConfiguredTaskHandler
 import sys
 

@@ -1,5 +1,5 @@
 import yaml
-from bingdog.util import ifNone, NullPointerException
+from bingproxy.util import ifNone, NullPointerException, checkIfSubClass
 
 class Configurator(object):
     __configurator = None
@@ -11,11 +11,9 @@ class Configurator(object):
             self._config = yaml.load(f.read())
     
     def initialize(confClass, *args, **kwargs):
-        if issubclass(confClass, Configurator) or confClass is Configurator:
-            if Configurator.__configurator is None:
-                Configurator.__configurator = confClass(*args, **kwargs)
-        else:
-            raise ConfiguratorException(confClass)
+        checkIfSubClass(confClass, Configurator)
+        if Configurator.__configurator is None:
+            Configurator.__configurator = confClass(*args, **kwargs)
     
     def getConfigurator():
         return ifNone(Configurator.__configurator)
@@ -55,9 +53,4 @@ class Configurator(object):
             return ifNone(logger).get("log_file_path")
         except NullPointerException as e:
             return "bingdog.log"
-            
-class ConfiguratorException(Exception):
-    def __init__(self, confClass):
-        super().__init__(confClass, " is not a class of Configurator.")
-        
     

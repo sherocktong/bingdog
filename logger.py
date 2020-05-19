@@ -1,5 +1,5 @@
 import logging
-from bingdog.util import equalsIgnoreCase
+from bingproxy.util import equalsIgnoreCase, checkIfSubClass
 from bingdog.appconfig import Configurator
 
 class Logger(object):
@@ -27,14 +27,7 @@ class Logger(object):
         logging.exception(message)
     
     def getLogger(loggerClass, *args, **kargs):
-        if issubclass(loggerClass, Logger) or loggerClass is Logger:
-            if Logger.__logger is None:
-                Logger.__logger = loggerClass(*args, **kargs)
-        else:
-            raise LoggerClassException(loggerClass)
+        checkIfSubClass(loggerClass, Logger)
+        if Logger.__logger is None:
+            Logger.__logger = loggerClass(*args, **kargs)
         return Logger.__logger
-        
-class LoggerClassException(Exception):
-    
-    def __init__(self, loggerClass):
-        super(HandlerException, self).__init__(loggerClass, " is not a class of Logger.")

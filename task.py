@@ -1,5 +1,6 @@
 from abc import abstractmethod
-from bingdog.util import ExtProcessShellUtil, ifNone, NullPointerException
+from bingproxy.util import ifNone, NullPointerException
+from bingdog.extutil import ExtProcessShellUtil
 from bingproxy.proxy import ProxyDecorator
 from bingdog.taskproxy import FlowedInvocationHandler
 
