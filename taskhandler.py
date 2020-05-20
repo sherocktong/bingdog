@@ -1,9 +1,10 @@
 from abc import abstractmethod
 
 from bingproxy.proxy import InvocationHandler
-from bingdog.util import ifNone, NullPointerException
+from bingproxy.util import ifNone, NullPointerException, equalsIgnoreCase, implement, fetchDict, trace
+from bingdog.logger import Logger
 import json
-        
+     
 class TaskHandler(object):
 
     def __init__(self, nestedObj):
@@ -17,8 +18,11 @@ class TaskHandler(object):
     def getNextTask(self):
         task = self._getNextTask()
         if (task):
-            task.params.update(self._nestedObj.params)
+            task.params.update(fetchDict(self._nestedObj.params))
         return task
+        
+    def asynchronized(self):
+        return False
         
     def _getNextTask(self):
         return None
@@ -70,9 +74,12 @@ class ConfiguredTaskHandler(TaskHandler):
         try:
             self._nestedObj.params[ifNone(self._configuredUtil.getSubUnitParamKey(self._nestedObj.taskId))] = self._nestedObj.params[ifNone(self._configuredUtil.getSubListParamKey(self._nestedObj.taskId))][self._childIndex]
         finally:
-            subTask.params.update(self._nestedObj.params)
+            subTask.params.update(fetchDict(self._nestedObj.params))
             self._childIndex = self._childIndex + 1
             return subTask
+    
+    def asynchronized(self):
+        return self._configuredUtil.getSubTaskAsynchronized(self._nestedObj.taskId)
     
     def _getSubTaskListSize(self):
         try:

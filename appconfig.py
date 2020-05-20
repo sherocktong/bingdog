@@ -30,6 +30,15 @@ class Configurator(object):
     def flowDiagramPath(self, path):
         self.__flowDiagramPath = path
     
+    def getThreadingSize(self):
+        try:
+            application = self._config.get("application")
+            task = ifNone(application).get("task")
+            threadingSize = ifNone(task).get("working_threads")
+            return ifNone(threadingSize)
+        except NullPointerException as e:
+            return 1
+    
     def getLoggingLevel(self):
         try:
             application = self._config.get("application")

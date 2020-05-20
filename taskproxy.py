@@ -1,9 +1,11 @@
 from bingproxy.proxy import InvocationHandler
+from bingproxy.util import implement
 from bingdog.appconfig import Configurator
 from bingdog.taskutil import ConfiguredTaskUtil
 from bingdog.logger import Logger
 
-class MappedInvocationHandler(InvocationHandler):
+@implement(InvocationHandler)
+class MappedInvocationHandler(object):
     def __init__(self):
         self._taskMap = {}
         self._taskObjMap = {}
@@ -29,7 +31,8 @@ class MappedInvocationHandler(InvocationHandler):
         else:
             return func(*args, **kwargs)
 
-class FlowedInvocationHandler(InvocationHandler):
+@implement(InvocationHandler)
+class FlowedInvocationHandler(object):
     def __init__(self):
         super().__init__()
         self.__configuredUtil = ConfiguredTaskUtil(Configurator.getConfigurator().flowDiagramPath)
@@ -41,6 +44,9 @@ class FlowedInvocationHandler(InvocationHandler):
             return getattr(taskHandler, func.__name__)(*args, **kwargs)
         else:
             return func(*args, **kwargs)
+
+    def asynchronized(self):
+        return self.__configuredUtil.getSubTaskAsynchronized()
 
     def _getTaskHandler(self, proxy, nestedObj, *args, **kwargs):
         if self._taskObjMap.get(proxy) is None:

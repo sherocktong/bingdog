@@ -21,6 +21,9 @@ class Task(object):
     def getNextTask(self):
         return None
         
+    def asynchronized(self):
+        return False
+        
     def hasNextChild(self):
         return False
     

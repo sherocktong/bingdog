@@ -1,6 +1,8 @@
-from bingproxy.util import ifNone, checkIfSubClass
+from bingproxy.util import ifNone, checkIsInstance, checkIfSubClass, trace
+from bingdog.logger import Logger
 from abc import abstractmethod
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from bingdog.appconfig import Configurator
 
 class ThreadingPool(object):
     def __init__(self, threadingSize):
@@ -12,29 +14,31 @@ class ThreadingPool(object):
         self.__executor = ThreadPoolExecutor(self.__threadingSize)
 
     __pool = None
-    def initialize(poolClass, *args, **kwargs):
-        checkIfSubClass(poolClass, ThreadingPool)
+    def initialize(poolClass):
         if ThreadingPool.__pool is None:
-            ThreadingPool.__pool = poolClass(*args, **kargs)
+            checkIfSubClass(poolClass, ThreadingPool)
+            ThreadingPool.__pool = poolClass(Configurator.getConfigurator().getThreadingSize())
     
     def getThreadingPool():
+        ThreadingPool.initialize(ThreadingPool)
         return ifNone(ThreadingPool.__pool)
     
     def addTask(self, prevTasks, threadTask):
-        checkIfSubClass(threadTask.__class__, ThreadTask)
+        checkIsInstance(threadTask, ThreadTask)
         if self.__todoList.get(threadTask) is None:
             self.__todoList[threadTask] = dict()
             self.__todoList[threadTask]["prev_set"] = set()
             self.__todoList[threadTask]["next_set"] = set()
         self.setPrev(prevTasks, threadTask)
         self.push(threadTask)
+        Logger.getLoggerDefault().info("Task added to the pool: " + threadTask.task.taskId)
     
     def setPrev(self, prevTasks, threadTask):
-        checkIfSubClass(threadTask.__class__, ThreadTask)
+        checkIsInstance(threadTask, ThreadTask)
         if self.exists(threadTask):
             if (prevTasks) and len(prevTasks) > 0:
                 for prevTask in prevTasks:
-                    checkIfSubClass(prevTask.__class__, ThreadTask)
+                    checkIsInstance(prevTask, ThreadTask)
                     if self.exists(prevTask):
                         self.__todoList[prevTask]["next_set"].add(threadTask)
                         self.__todoList[threadTask]["prev_set"].add(prevTask)
@@ -43,15 +47,20 @@ class ThreadingPool(object):
         for prevTask in self.__todoList[threadTask]["prev_set"]:
             if self.exists(prevTask):
                 return
-        self.__executor(threadTask.run)
+        Logger.getLoggerDefault().info("Task adding to the pool: " + threadTask.task.taskId)
+        future = self.__executor.submit(threadTask.run)
+        future.add_done_callback(threadTask.callback)
+        Logger.getLoggerDefault().info("Task adding to the pool2: " + threadTask.task.taskId)
     
     def exists(self, threadTask):
         return threadTask is not None and self.__todoList.get(threadTask) is not None
     
     def remove(self, threadTask):
-        return self.__todoList.pop(threadTask)
+        taskDict = self.__todoList.pop(threadTask)
+        for nextTask in taskDict["next_set"]:
+            self.addTask(None, nextTask)
         
 class ThreadTask(object):
     @abstractmethod
-    def run(self)
+    def run(self):
         pass

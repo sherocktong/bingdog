@@ -1,5 +1,5 @@
 import json
-from bingproxy.util import ifNone, NullPointerException
+from bingproxy.util import ifNone, NullPointerException, equalsIgnoreCase, trace
 from bingdog.taskhandler import ConfiguredTaskHandler
 import sys
 
@@ -101,7 +101,18 @@ class ConfiguredTaskUtil(object):
             return ifNone(self._configJson).get(taskId)
         except NullPointerException as e:
             return None
-            
+    
+    def getSubTaskAsynchronized(self, taskId):
+        try:
+            subTaskJson = self._getSubTasksJson(taskId)
+            asynchronized = ifNone(subTaskJson).get("asynchronized")
+            if equalsIgnoreCase(ifNone(asynchronized), "true"):
+                return True
+            else:
+                return False
+        except NullPointerException as e:
+            return False
+    
     def _getSubTasksJson(self, taskId):
         try:
             return ifNone(self._getTaskJson(taskId)).get('sub_task_list')

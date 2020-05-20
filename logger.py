@@ -31,3 +31,6 @@ class Logger(object):
         if Logger.__logger is None:
             Logger.__logger = loggerClass(*args, **kargs)
         return Logger.__logger
+        
+    def getLoggerDefault():
+        return Logger.getLogger(Logger)
