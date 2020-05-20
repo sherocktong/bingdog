@@ -31,7 +31,6 @@ class ThreadingPool(object):
             self.__todoList[threadTask]["next_set"] = set()
         self.setPrev(prevTasks, threadTask)
         self.push(threadTask)
-        Logger.getLoggerDefault().info("Task added to the pool: " + threadTask.task.taskId)
     
     def setPrev(self, prevTasks, threadTask):
         checkIsInstance(threadTask, ThreadTask)
@@ -47,10 +46,8 @@ class ThreadingPool(object):
         for prevTask in self.__todoList[threadTask]["prev_set"]:
             if self.exists(prevTask):
                 return
-        Logger.getLoggerDefault().info("Task adding to the pool: " + threadTask.task.taskId)
         future = self.__executor.submit(threadTask.run)
         future.add_done_callback(threadTask.callback)
-        Logger.getLoggerDefault().info("Task adding to the pool2: " + threadTask.task.taskId)
     
     def exists(self, threadTask):
         return threadTask is not None and self.__todoList.get(threadTask) is not None

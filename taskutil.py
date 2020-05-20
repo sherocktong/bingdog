@@ -102,16 +102,12 @@ class ConfiguredTaskUtil(object):
         except NullPointerException as e:
             return None
     
-    def getSubTaskAsynchronized(self, taskId):
+    def getThreadingSize(self, taskId):
         try:
             subTaskJson = self._getSubTasksJson(taskId)
-            asynchronized = ifNone(subTaskJson).get("asynchronized")
-            if equalsIgnoreCase(ifNone(asynchronized), "true"):
-                return True
-            else:
-                return False
+            return int(ifNone(ifNone(subTaskJson).get("threading_size")))
         except NullPointerException as e:
-            return False
+            return 1
     
     def _getSubTasksJson(self, taskId):
         try:

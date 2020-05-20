@@ -21,9 +21,6 @@ class TaskHandler(object):
             task.params.update(fetchDict(self._nestedObj.params))
         return task
         
-    def asynchronized(self):
-        return False
-        
     def _getNextTask(self):
         return None
         
@@ -32,6 +29,9 @@ class TaskHandler(object):
             return True
         else:
             return False
+            
+    def getThreadingSize(self):
+        return 0
     
     def getNextChild(self):
         subTask = self._fetchNextSubTask()
@@ -78,8 +78,8 @@ class ConfiguredTaskHandler(TaskHandler):
             self._childIndex = self._childIndex + 1
             return subTask
     
-    def asynchronized(self):
-        return self._configuredUtil.getSubTaskAsynchronized(self._nestedObj.taskId)
+    def getThreadingSize(self):
+        return self._configuredUtil.getThreadingSize(self._nestedObj.taskId)
     
     def _getSubTaskListSize(self):
         try:

@@ -21,8 +21,8 @@ class Task(object):
     def getNextTask(self):
         return None
         
-    def asynchronized(self):
-        return False
+    def getThreadingSize(self):
+        return 0
         
     def hasNextChild(self):
         return False
