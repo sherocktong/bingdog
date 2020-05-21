@@ -50,7 +50,6 @@ class FlowedInvocationHandler(object):
 
     def _getTaskHandler(self, proxy, nestedObj, *args, **kwargs):
         if self._taskObjMap.get(proxy) is None:
-            Logger.getLogger(Logger).info("Class Initialized: " + nestedObj.__class__.__name__)
             handlerClass = self.__configuredUtil.getTaskHandlerClass(nestedObj.taskId)
             if handlerClass is None:
                 return None

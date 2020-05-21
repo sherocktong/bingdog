@@ -1,17 +1,20 @@
 import json
 from bingproxy.util import ifNone, NullPointerException, equalsIgnoreCase, trace
 from bingdog.taskhandler import ConfiguredTaskHandler
+from bingdog.logger import Logger
 import sys
 
 class ConfiguredTaskUtil(object):
+    _configJson = None
     def __init__(self, filePath):
-        with open(filePath, "r") as conf:
-            self._configJson = json.loads(conf.read())
-            classPath = self._configJson.get("class_path")
-            if (classPath) :
-                for i in range(len(classPath.split(","))):
-                    if (classPath.split(",")[i]):
-                        sys.path.append(classPath.split(",")[i])
+        if ConfiguredTaskUtil._configJson is None:
+            with open(filePath, "r") as conf:
+                ConfiguredTaskUtil._configJson = json.loads(conf.read())
+                classPath = ConfiguredTaskUtil._configJson.get("class_path")
+                if (classPath) :
+                    for i in range(len(classPath.split(","))):
+                        if (classPath.split(",")[i]):
+                            sys.path.append(classPath.split(",")[i])
             
     def __getModuleClassName(self, fullName):
         if len(fullName.split("|")) < 2:
@@ -79,10 +82,7 @@ class ConfiguredTaskUtil(object):
             return None
 
     def _getStatement(self, taskId):
-        try:
-            return ifNone(self._getTaskJson(taskId)).get("statement")
-        except NullPointerException as e:
-            return None
+        return ifNone(self._getTaskJson(taskId)).get("statement")
 
     def getTaskHandlerClass(self, taskId):
         try:
@@ -91,16 +91,10 @@ class ConfiguredTaskUtil(object):
             return ConfiguredTaskHandler
 
     def _getTaskClassName(self, taskId):
-        try:
-            return ifNone(self._getTaskJson(taskId)).get("class_name")
-        except NullPointerException as e:
-            return None
+        return ifNone(self._getTaskJson(taskId)).get("class_name")
 
     def _getTaskJson(self, taskId):
-        try:
-            return ifNone(self._configJson).get(taskId)
-        except NullPointerException as e:
-            return None
+        return ifNone(ConfiguredTaskUtil._configJson).get(taskId)
     
     def getThreadingSize(self, taskId):
         try:
