@@ -18,7 +18,6 @@ class TaskHandler(object):
     def getNextTask(self):
         task = self._getNextTask()
         if (task):
-            Logger.getLoggerDefault().info("Task: " + self._nestedObj.taskId + " with The next task ID: " + task.taskId)
             task.params.update(fetchDict(self._nestedObj.params))
         return task
         
@@ -72,7 +71,6 @@ class ConfiguredTaskHandler(TaskHandler):
     
     def getNextChild(self):
         subTask = self._fetchNextSubTask()
-        Logger.getLoggerDefault().info("Task: " + self._nestedObj.taskId + " with The next child task ID: " + subTask.taskId)
         try:
             self._nestedObj.params[ifNone(self._configuredUtil.getSubUnitParamKey(self._nestedObj.taskId))] = self._nestedObj.params[ifNone(self._configuredUtil.getSubListParamKey(self._nestedObj.taskId))][self._childIndex]
         finally:

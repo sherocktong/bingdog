@@ -24,6 +24,9 @@ class ConfiguredTaskUtil(object):
             objName = fullName.split("|")[1]
         return objModule, objName
     
+    def _getParameters(self, taskId):
+        return self._getTaskJson(taskId).get("parameters")
+    
     def _getClassByName(self, fullName):
         objModule, objName = self.__getModuleClassName(fullName)
         tokens = objName.split(".")
@@ -45,11 +48,23 @@ class ConfiguredTaskUtil(object):
             className = self._getTaskClassName(taskId)
             taskClass = self._getClassByName(ifNone(className))
             task = ifNone(taskClass)().newInstance(taskId)
-            task.statement = self._getStatement(taskId)
-        except NullPointerException as e:
+            parameters = self._getParameters(taskId)
+            if parameters:
+                for key in parameters:
+                    task.params[key] = parameters[key]
+            keys = self._getKeys()
+            for key in keys:
+                value = self._getTaskProperty(taskId, key)
+                if value:
+                    task.params["__" + key + "__"] = value
+        except Exception as e:
+            Logger.getLoggerDefault().exception("Task ID: " + taskId + ". Incorrect Class Name")
             raise TaskExecutionException("Task ID: " + taskId + ". Incorrect Class Name", e)
         finally:
             return task
+
+    def _getKeys(self):
+        return ["statement", "source_file", "dist_file", "content", "bean", "write_mode", "text", "encoding"]
 
     def getNextTaskId(self, taskId):
         try:
@@ -81,14 +96,19 @@ class ConfiguredTaskUtil(object):
         except NullPointerException as e:
             return None
 
-    def _getStatement(self, taskId):
-        return ifNone(self._getTaskJson(taskId)).get("statement")
+    def _getTaskProperty(self, taskId, key):
+        return ifNone(self._getTaskJson(taskId)).get(key)
 
     def getTaskHandlerClass(self, taskId):
         try:
-            return ifNone(self._getClassByName(ifNone(self._getTaskHandlerName(taskId))))
-        except NullPointerException as e:
-            return ConfiguredTaskHandler
+            className = self._getTaskHandlerName(taskId)
+            if className:
+                return self._getClassByName(className)
+            else:
+                return ConfiguredTaskHandler
+        except Exception as e:
+            Logger.getLoggerDefault().exception("Task ID: " + taskId + ". Incorrect Task Handler Class Name")
+            raise e
 
     def _getTaskClassName(self, taskId):
         return ifNone(self._getTaskJson(taskId)).get("class_name")

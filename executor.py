@@ -19,6 +19,7 @@ class TaskExecutor():
                 raise TaskExecutionException("None Root Task")
         except Exception as e:
             Logger.getLogger(Logger).exception("Root TaskExecutionException has Thrown.")
+            raise e
     
     def __execute(self, task):
         if (task):
@@ -30,7 +31,7 @@ class TaskExecutor():
                         childTask = task.getNextChild()
                         self.__execute(childTask)
                 else:
-                    Logger.getLoggerDefault().info("Task " + task.taskId + " started multiple threads with size: " + str(tSize))
+                    Logger.getLoggerDefault().debug("Task " + task.taskId + " started multiple threads with size: " + str(tSize))
                     with ThreadPoolExecutor(tSize) as exc:
                         submitList = []
                         while task.hasNextChild():

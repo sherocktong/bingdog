@@ -15,7 +15,7 @@ class ExtProcessShellUtil(object):
 
     def __print(self, text):
         if len(text) <= 500:
-            Logger.getLogger(Logger).info(text)
+            Logger.getLogger(Logger).debug(text)
             
 class ExtExecutionException(Exception):
     

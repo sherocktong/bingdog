@@ -1,5 +1,5 @@
 import logging
-from bingproxy.util import equalsIgnoreCase, checkIfSubClass
+from bingproxy.util import equalsIgnoreCase, checkIfSubClass, trace
 from bingdog.appconfig import Configurator
 
 class Logger(object):
@@ -12,19 +12,35 @@ class Logger(object):
             loggingLevel = logging.INFO
         elif equalsIgnoreCase("debug", configurator.getLoggingLevel()):
             loggingLevel = logging.DEBUG
-        logging.basicConfig(level=loggingLevel, filename=configurator.getLoggingFilePath(), format=configurator.getLoggingFormat())
+        elif equalsIgnoreCase("warning", configurator.getLoggingLevel()):
+            loggingLevel = logging.WARNING
+        elif equalsIgnoreCase("error", configurator.getLoggingLevel()):
+            loggingLevel = logging.ERROR
+        elif equalsIgnoreCase("critical", configurator.getLoggingLevel()):
+            loggingLevel = logging.CRITICAL
+        filePath = configurator.getLoggingFilePath()
+        if filePath:
+            logging.basicConfig(level=loggingLevel, filename=filePath, format=configurator.getLoggingFormat())
+        else:
+            logging.basicConfig(level=loggingLevel, format=configurator.getLoggingFormat())
         
-    def info(self, message):
-        logging.info(message)
+    def info(self, message, *args, **kwargs):
+        logging.info(message, *args, **kwargs)
     
-    def warning(self, message):
-        logging.warning(message)
+    def warning(self, message, *args, **kwargs):
+        logging.warning(message, *args, **kwargs)
     
-    def error(self, message):
-        logging.error(message)
+    def error(self, message, *args, **kwargs):
+        logging.error(message, *args, **kwargs)
+        
+    def debug(self, message, *args, **kwargs):
+        logging.debug(message, *args, **kwargs)
     
-    def exception(self, message):
-        logging.exception(message)
+    def exception(self, message, *args, **kwargs):
+        logging.exception(message, *args, **kwargs)
+    
+    def critical(self, message, *args, **kwargs):
+        logging.critical(message, *args, **kwargs)
     
     def getLogger(loggerClass, *args, **kargs):
         checkIfSubClass(loggerClass, Logger)
