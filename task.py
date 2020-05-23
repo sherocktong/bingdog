@@ -61,8 +61,13 @@ class ShellExecutionTask(Task):
         try:
             self._extUtil.execute(self._processDoubleStatement(ifNone(self.params.get("__statement__"))))
         except Exception as e:
-            Logger.getLoggerDefault().exception("None statement")
-            raise TaskExecutionException("None statement")
+            statement = self.params.get("__statement__")
+            if statement is not None:
+                statement = "Executing " + statement
+            else:
+                statement = "None statement"
+            Logger.getLoggerDefault().exception(statement)
+            raise TaskExecutionException(statement)
 
 @ProxyDecorator(FlowedInvocationHandler)
 class TaskExecutionException(Exception):
@@ -97,7 +102,7 @@ class FileCopyTask(FileTask):
 class FileReaderTask(FileTask):
     def run(self):
         with open(self._processDoubleStatement(self.params["__source_file__"]), "r") as f:
-            self.params[self.params["__content__"]] = self._processDoubleStatment(f.read())
+            self.params[self.params["__content__"]] = self._processDoubleStatement(f.read())
 
 @ProxyDecorator(FlowedInvocationHandler)
 class FileWriterTask(FileTask):
@@ -106,9 +111,9 @@ class FileWriterTask(FileTask):
         if not writeMode.startswith("a") and not writeMode.startswith("w"):
             raise TaskExecutionException("Invalid writting mode")
         with open(self._processDoubleStatement(self.params["__dist_file__"]), writeMode, encoding = self._getEncoding()) as f:
-            f.write(self._processDoubleStatment(self.params[self.params["__content__"]]))
+            f.write(self._processDoubleStatement(self.params[self.params["__content__"]]))
 
 @ProxyDecorator(FlowedInvocationHandler)
-class ContentRepalcementTask(Task):
+class ContentReplacementTask(Task):
     def run(self):
-        self.params[self.params["__content__"]] = self._processDoubleStatment(self.params["__text__"])
+        self.params[self.params["__content__"]] = self._processDoubleStatement(self.params["__text__"])
