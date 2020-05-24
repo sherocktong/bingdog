@@ -58,10 +58,11 @@ class ShellExecutionTask(Task):
         self._extUtil = ExtProcessShellUtil()
     
     def run(self):
+        statement = None
         try:
-            self._extUtil.execute(self._processDoubleStatement(ifNone(self.params.get("__statement__"))))
+            statement = self._processDoubleStatement(ifNone(self.params.get("__statement__")))
+            self._extUtil.execute(statement)
         except Exception as e:
-            statement = self.params.get("__statement__")
             if statement is not None:
                 statement = "Executing " + statement
             else:
