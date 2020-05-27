@@ -1,9 +1,10 @@
 from abc import abstractmethod
-from bingproxy.util import ifNone, NullPointerException, equalsIgnoreCase
+from bingproxy.util import ifNone, NullPointerException, equalsIgnoreCase, isNumber, trace
 from bingdog.extutil import ExtProcessShellUtil
 from bingproxy.proxy import ProxyDecorator
 from bingdog.taskproxy import FlowedInvocationHandler
 from bingdog.logger import Logger
+import json
 
 class Task(object):
     
@@ -24,6 +25,11 @@ class Task(object):
         
     def getThreadingSize(self):
         return 0
+        
+    def prepare(self):
+        for key in self.params:
+            if key.startswith("__") and isinstance(self.params[key], str):
+                self.params[key] = self._processDoubleStatement(self.params[key])
         
     def hasNextChild(self):
         return False
@@ -61,7 +67,9 @@ class ShellExecutionTask(Task):
         statement = None
         try:
             statement = self._processDoubleStatement(ifNone(self.params.get("__statement__")))
-            self._extUtil.execute(statement)
+            responseText = self._extUtil.execute(statement)
+            if (self.params.get("__content__")):
+                self.params[self.params["__content__"]] = responseText
         except Exception as e:
             if statement is not None:
                 statement = "Executing " + statement
@@ -108,13 +116,48 @@ class FileReaderTask(FileTask):
 @ProxyDecorator(FlowedInvocationHandler)
 class FileWriterTask(FileTask):
     def run(self):
-        writeMode = self._getWriteMode()
-        if not writeMode.startswith("a") and not writeMode.startswith("w"):
-            raise TaskExecutionException("Invalid writting mode")
-        with open(self._processDoubleStatement(self.params["__dist_file__"]), writeMode, encoding = self._getEncoding()) as f:
-            f.write(self._processDoubleStatement(self.params[self.params["__content__"]]))
+        filePath = self.params["__dist_file__"]
+        writer = self.params.get("filePath")
+        if writer is not None:
+            writer.write(self._processDoubleStatement(self.params[self.params["__content__"]]))
+        else:
+            writeMode = self._getWriteMode()
+            if not writeMode.startswith("a") and not writeMode.startswith("w"):
+                raise TaskExecutionException("Invalid writting mode")
+            with open(self.params["__dist_file__"], writeMode, encoding = self._getEncoding()) as f:
+                f.write(self._processDoubleStatement(self.params[self.params["__content__"]]))
 
 @ProxyDecorator(FlowedInvocationHandler)
 class ContentReplacementTask(Task):
     def run(self):
-        self.params[self.params["__content__"]] = self._processDoubleStatement(self.params["__text__"])
+        self.params[self.params["__content__"]] = self.params["__text__"]
+
+@ProxyDecorator(FlowedInvocationHandler)
+class JsonTransferTask(Task):
+    def run(self):
+        self.params[self.params["__content__"]] = json.loads(self.params["__text__"])
+
+@ProxyDecorator(FlowedInvocationHandler)
+class ParameterRemoveTask(Task):
+    def run(self):
+        self.params.pop(self.params["__content__"])
+
+
+@ProxyDecorator(FlowedInvocationHandler)
+class FieldMappingTask(Task):
+        
+    def run(self):
+        dataObject = self.params[self.params["__data_object__"]]
+        record = self.params.get(self.params["__content__"])
+        if record is None:
+            record = dict()
+            self.params[self.params["__content__"]] = record
+        mapping = self.params["__mapping__"]
+        for key in mapping:
+            if isNumber(mapping[key]):
+                record[key] = dataObject[int(mapping[key])]
+            else:
+                record[key] = dataObject[mapping[key]]
+        
+            
+        

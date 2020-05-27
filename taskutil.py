@@ -25,7 +25,7 @@ class ConfiguredTaskUtil(object):
         return objModule, objName
     
     def _getParameters(self, taskId):
-        return self._getTaskJson(taskId).get("parameters")
+        return self._getTaskProperty(taskId, "parameters")
     
     def _getClassByName(self, fullName):
         objModule, objName = self.__getModuleClassName(fullName)
@@ -64,13 +64,10 @@ class ConfiguredTaskUtil(object):
             return task
 
     def _getKeys(self):
-        return ["statement", "source_file", "dist_file", "content", "bean", "write_mode", "text", "encoding"]
+        return ["statement", "source_file", "dist_file", "content", "bean", "write_mode", "text", "encoding", "index", "sub_task_list", "next_task", "parameters", "class_name", "mapping", "data_object"]
 
     def getNextTaskId(self, taskId):
-        try:
-            return ifNone(self._getTaskJson(taskId)).get('next_task')
-        except NullPointerException as e:
-            return None
+        return self._getTaskProperty(taskId, 'next_task')
     
     def getSubTasksJsonList(self, taskId):
         try:
@@ -83,12 +80,6 @@ class ConfiguredTaskUtil(object):
             return ifNone(self._getSubTasksJson(taskId)).get("unit_task")
         except NullPointerException as e:
             return None
-    
-    def getSubListParamKey(self, taskId):
-        try:
-            return ifNone(self._getSubTasksJson(taskId)).get("list_param_key")
-        except NullPointerException as e:
-            return None 
     
     def getSubUnitParamKey(self, taskId):
         try:
@@ -111,7 +102,7 @@ class ConfiguredTaskUtil(object):
             raise e
 
     def _getTaskClassName(self, taskId):
-        return ifNone(self._getTaskJson(taskId)).get("class_name")
+        return self._getTaskProperty(taskId, "class_name")
 
     def _getTaskJson(self, taskId):
         return ifNone(ConfiguredTaskUtil._configJson).get(taskId)
@@ -124,7 +115,7 @@ class ConfiguredTaskUtil(object):
             return 1
     
     def _getSubTasksJson(self, taskId):
-        try:
-            return ifNone(self._getTaskJson(taskId)).get('sub_task_list')
-        except NullPointerException as e:
-            return None
+        return self._getTaskProperty(taskId, "sub_task_list")
+        
+    def getSubTaskFieldMapping(self, taskId):
+        return self._getTaskProperty(taskId, "mapping")

@@ -20,7 +20,7 @@ class TaskExecutor():
         except Exception as e:
             Logger.getLogger(Logger).exception("Root TaskExecutionException has Thrown.")
             raise e
-    
+
     def __execute(self, task):
         if (task):
             try:
