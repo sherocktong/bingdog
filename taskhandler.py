@@ -59,6 +59,14 @@ class ConfiguredTaskHandler(TaskHandler):
     def __init__(self, nestedObj, configuredUtil):
         super().__init__(nestedObj)
         self._configuredUtil = configuredUtil
+        self._distFile = None
+        
+    def run(self):
+        super().run()
+        filePath = self._nestedObj.params.get("__dist_file__")
+        if (filePath):
+            self._distFile = open(filePath, self._getWriteMode(), encoding=self._getEncoding())
+            self._nestedObj.params[filePath] = self._distFile
     
     def _getNextTask(self):
         nextTaskId = self._configuredUtil.getNextTaskId(self._nestedObj.taskId)
@@ -67,10 +75,16 @@ class ConfiguredTaskHandler(TaskHandler):
         else:
             return None
     
+    def _close(self):
+        if (self._distFile):
+            self._distFile.close()
+            self._nestedObj.params.pop(self._nestedObj.params["__dist_file__"])
+    
     def hasNextChild(self):
         if self._childIndex < self._getSubTaskListSize():
             return True
         else:
+            self._close()
             return False
     
     def _fetchNextSubTask(self):
@@ -87,40 +101,6 @@ class ConfiguredTaskHandler(TaskHandler):
         except NullPointerException as e:
             return 0
 
-class DynamicConfiguredTaskHandler(ConfiguredTaskHandler):
-
-    def __init__(self, nestedObj, configuredUtil):
-        super().__init__(nestedObj, configuredUtil)
-        self._distFile = None
-    
-    def run(self):
-        super().run()
-        filePath = self._nestedObj.params.get("__dist_file__")
-        if (filePath):
-            self._distFile = open(filePath, self._getWriteMode(), encoding=self._getEncoding())
-            self._nestedObj.params[filePath] = self._distFile
-    
-    def hasNextChild(self):
-        if self._childIndex < self._getSubTaskListSize():
-            return True
-        else:
-            self._close()
-            return False
-    
-    def _close(self):
-        if (self._distFile):
-            self._distFile.close()
-            self._nestedObj.params.pop(self._nestedObj.params["__dist_file__"])
-    
-    def _fetchNextSubTask(self):
-        subTask = self._configuredUtil.getTask(self._configuredUtil.getSubUnitTaskId(self._nestedObj.taskId))
-        unitKey = self._configuredUtil.getSubUnitParamKey(self._nestedObj.taskId)
-        subTask.params[ifNone(unitKey)] = self._getRawRecord()
-        return subTask
-
-    def _getRawRecord(self):
-        return self._nestedObj.params[ifNone(self._nestedObj.params["__content__"])][self._childIndex]
-        
     def _getEncoding(self):
         charset = self._nestedObj.params.get("__encoding__")
         if charset is None:
@@ -134,7 +114,18 @@ class DynamicConfiguredTaskHandler(ConfiguredTaskHandler):
             return "a"
         else:
             return mode
+            
+class DynamicConfiguredTaskHandler(ConfiguredTaskHandler):
 
+    def _fetchNextSubTask(self):
+        subTask = self._configuredUtil.getTask(self._configuredUtil.getSubUnitTaskId(self._nestedObj.taskId))
+        unitKey = self._configuredUtil.getSubUnitParamKey(self._nestedObj.taskId)
+        subTask.params[ifNone(unitKey)] = self._getRawRecord()
+        return subTask
+
+    def _getRawRecord(self):
+        return self._nestedObj.params[ifNone(self._nestedObj.params["__content__"])][self._childIndex]
+    
 class SpreadSheetTaskHandler(DynamicConfiguredTaskHandler):
     def __init__(self, nestedObj, configuredUtil):
         super().__init__(nestedObj, configuredUtil)
@@ -175,13 +166,15 @@ class CsvTaskHandler(DynamicConfiguredTaskHandler):
             self._record = next(self._content)
             return True
         except StopIteration as e:
-            self._file.close()
-            self._close()
-            return False
+            try:
+                self._file.close()
+            finally:
+                try:
+                    self._close()
+                finally:
+                    return False
 
     def run(self):
-        super().run()
-        self._file = open(self._nestedObj.params["__source_file__"], "r")
         self._content = csv.reader(self._file)
         self._record = next(self._content)
     

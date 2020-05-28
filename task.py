@@ -159,5 +159,3 @@ class FieldMappingTask(Task):
             else:
                 record[key] = dataObject[mapping[key]]
         
-            
-        
