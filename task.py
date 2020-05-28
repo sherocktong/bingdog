@@ -102,8 +102,8 @@ class FileTask(Task):
 @ProxyDecorator(FlowedInvocationHandler)
 class FileCopyTask(FileTask):
     def run(self):
-        with open(self._processDoubleStatement(self.params["__source_file__"]), "r") as f:
-            with open(self._processDoubleStatement(self.params["__dist_file__"]), self._getWriteMode(), encoding = self._getEncoding()) as d:
+        with open(self.params["__source_file__"], "r") as f:
+            with open(self.params["__dist_file__"], self._getWriteMode(), encoding = self._getEncoding()) as d:
                 for line in f:
                     d.write(self._processDoubleStatement(line))
 
@@ -117,7 +117,7 @@ class FileReaderTask(FileTask):
 class FileWriterTask(FileTask):
     def run(self):
         filePath = self.params["__dist_file__"]
-        writer = self.params.get("filePath")
+        writer = self.params.get(filePath)
         if writer is not None:
             writer.write(self._processDoubleStatement(self.params[self.params["__content__"]]))
         else:
