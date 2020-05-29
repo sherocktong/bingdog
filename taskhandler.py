@@ -179,11 +179,13 @@ class CsvTaskHandler(DynamicConfiguredTaskHandler):
                     return False
 
     def run(self):
+        super().run()
+        self._file = open(self._nestedObj.params["__source_file__"], "r")
         self._content = csv.reader(self._file)
         self._record = next(self._content)
     
     def _getSubTaskListSize(self):
-        return None
+        return 0
     
     def _getRawRecord(self):
         return self._record
