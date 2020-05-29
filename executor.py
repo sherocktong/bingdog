@@ -7,13 +7,15 @@ from concurrent.futures import ThreadPoolExecutor, ALL_COMPLETED, wait
 
 class TaskExecutor():
 
-    def execute(self,taskId, func = None):
+    def execute(self,taskId, func = None, callback = None):
         try:
             taskUtil = ConfiguredTaskUtil(Configurator.getConfigurator().flowDiagramPath)
             task = taskUtil.getTask(taskId)
             if (task):
                 if func:
                     func(task)
+                if callback:
+                    callback(task)
                 self.__execute(task)
             else:
                 raise TaskExecutionException("None Root Task")
