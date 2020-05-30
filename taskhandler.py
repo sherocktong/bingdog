@@ -130,7 +130,7 @@ class DynamicConfiguredTaskHandler(FileWriterTaskHandler):
     def _getRawRecord(self):
         return self._nestedObj.params[ifNone(self._nestedObj.params["__content__"])][self._childIndex]
     
-class SpreadSheetTaskHandler(DynamicConfiguredTaskHandler):
+class XlsReaderTaskHandler(DynamicConfiguredTaskHandler):
     def __init__(self, nestedObj, configuredUtil):
         super().__init__(nestedObj, configuredUtil)
         self._sheet = None
@@ -140,10 +140,15 @@ class SpreadSheetTaskHandler(DynamicConfiguredTaskHandler):
         if self._sheet is None:
             try:
                 data = xlrd.open_workbook(self._nestedObj.params["__source_file__"])
-                index = int(self._nestedObj.params["__index__"])
-                if index is None:
+                index = self._nestedObj.params.get("__sheet_index__")
+                name = self._nestedObj.params.get("__sheet_name__")
+                if name is not None:
+                    self._sheet = data.sheet_by_name(name)
+                elif index is not None:
+                    self._sheet = data.sheet_by_index(int(index))
+                else:
                     index = 0
-                self._sheet = data.sheet_by_index(index)
+                    self._sheet = data.sheet_by_index(index)
             except (FileNotFoundError, xlrd.XLRDError) as e:
                 Logger.getLoggerDefault().exception("Empty or Abscent data spreadsheet: " + self._nestedObj.params["__source_file__"])
                 raise NullPointerException()
@@ -158,7 +163,7 @@ class SpreadSheetTaskHandler(DynamicConfiguredTaskHandler):
     def _getRawRecord(self):
         return self._sheet.row_values(self._childIndex)
     
-class CsvTaskHandler(DynamicConfiguredTaskHandler):
+class CsvReaderTaskHandler(DynamicConfiguredTaskHandler):
     def __init__(self, nestedObj, configuredUtil):
         super().__init__(nestedObj, configuredUtil)
         self._file = None

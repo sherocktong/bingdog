@@ -64,7 +64,7 @@ class ConfiguredTaskUtil(object):
             return task
 
     def _getKeys(self):
-        return ["statement", "source_file", "dist_file", "content", "bean", "write_mode", "text", "encoding", "index", "sub_task_list", "next_task", "parameters", "class_name", "mapping", "data_object"]
+        return ["statement", "source_file", "dist_file", "content", "bean", "write_mode", "text", "encoding", "sheet_index", "sub_task_list", "next_task", "parameters", "class_name", "mapping", "data_object", "sheet_name"]
 
     def getNextTaskId(self, taskId):
         return self._getTaskProperty(taskId, 'next_task')
