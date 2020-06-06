@@ -16,6 +16,8 @@ class TaskExecutor():
                     func(task)
                 if callback:
                     callback(task)
+                if task.params.get("container_handler__") is None:
+                    task.params["container_handler__"] = dict()
                 self.__execute(task)
             else:
                 raise TaskExecutionException("None Root Task")

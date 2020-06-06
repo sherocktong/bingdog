@@ -47,6 +47,14 @@ class Task(object):
         else:
             return None
 
+    def _setContent(self, content):
+        index = self.params.get("__content__")
+        if index:
+            self.params[index] = content
+        index = self.params.get("__container__")
+        if index:
+            self.params["container_handler__"][index] = content
+
     def _processDoubleStatement(self, statement):
         if self.params.get("__bean__") is not None:
             statement = self._processStatement(statement, self.params[self.params["__bean__"]])
@@ -68,8 +76,7 @@ class ShellExecutionTask(Task):
         try:
             statement = self._processDoubleStatement(ifNone(self.params.get("__statement__")))
             responseText = self._extUtil.execute(statement)
-            if (self.params.get("__content__")):
-                self.params[self.params["__content__"]] = responseText
+            self._setContent(responseText)
         except Exception as e:
             if statement is not None:
                 statement = "Executing " + statement
@@ -111,7 +118,7 @@ class FileCopyTask(FileTask):
 class FileReaderTask(FileTask):
     def run(self):
         with open(self._processDoubleStatement(self.params["__source_file__"]), "r") as f:
-            self.params[self.params["__content__"]] = self._processDoubleStatement(f.read())
+            self._setContent(self._processDoubleStatement(f.read()))
 
 @ProxyDecorator(FlowedInvocationHandler)
 class FileWriterTask(FileTask):
@@ -130,18 +137,17 @@ class FileWriterTask(FileTask):
 @ProxyDecorator(FlowedInvocationHandler)
 class ContentReplacementTask(Task):
     def run(self):
-        self.params[self.params["__content__"]] = self.params["__text__"]
+        self._setContent(self.params["__text__"])
 
 @ProxyDecorator(FlowedInvocationHandler)
 class JsonTransferTask(Task):
     def run(self):
-        self.params[self.params["__content__"]] = json.loads(self.params["__text__"])
+        self._setContent(json.loads(self.params["__text__"]))
 
 @ProxyDecorator(FlowedInvocationHandler)
 class ParameterRemoveTask(Task):
     def run(self):
         self.params.pop(self.params["__content__"])
-
 
 @ProxyDecorator(FlowedInvocationHandler)
 class FieldMappingTask(Task):
@@ -151,7 +157,7 @@ class FieldMappingTask(Task):
         record = self.params.get(self.params["__content__"])
         if record is None:
             record = dict()
-            self.params[self.params["__content__"]] = record
+            self._setContent(record)
         mapping = self.params["__mapping__"]
         for key in mapping:
             if isNumber(mapping[key]):
@@ -159,3 +165,8 @@ class FieldMappingTask(Task):
             else:
                 record[key] = dataObject[mapping[key]]
         
+@ProxyDecorator(FlowedInvocationHandler)
+class ContainerUnpackTask(Task):
+    def run(self):
+        value = self.params["container_handler__"][self.params["__container__"]]
+        self.params[self.params["__content__"]] = ifNone(value)
