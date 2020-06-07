@@ -2,8 +2,6 @@
 
 bingdog is a framework to simplify complexity of business code, which was written with python 3. It splits procedure into multiple tasks and make them run as a configured workflow. Look into the introduction for more details.
 
-[toc]
-
 ## Quick Start
 
 ### Installation
