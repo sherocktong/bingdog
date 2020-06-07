@@ -166,7 +166,9 @@ bingdog is run by tasks like the diagram below. Each task represent a processing
 ![Task Processing Flow]()
 
 ## Task
+
 Tasks are described as a json node in workflow definition file. The json node was combined by Task ID and Json Content.
+
 ``` json
 "init_parameters": {
 	"class_name": "bingdog.task|task.BlankTask",
@@ -194,6 +196,7 @@ Tasks are described as a json node in workflow definition file. The json node wa
 |class_name|Task Class. The before "\|" is package name. The after "\|" is class name. It can be translated into python as "from ${package name} import ${class name}"|bingdog.task\|task.BlankTask|
 |parameters|Add parameters into tasks||
 |next_task|The task ID of next task||
+|bean|For replacement to parameters||
 
 ### Task Class List
 
@@ -252,6 +255,12 @@ Tasks of class FileReaderTask are to read files into a parameter or container.
 }
 ```
 
+|Name|Description|Sample|Optional|
+|-----|-----|-----|-----|
+|source_file|Source file path||False|
+|content|Parameter key to store source file content||False|
+|container|Container key to store source file content||False|
+
 #### FileWriterTask
 
 Tasks of class FileWriterTask are to write files from a parameter or container.
@@ -263,6 +272,12 @@ Tasks of class FileWriterTask are to write files from a parameter or container.
 	"content": "task",
 	"bean": "item_properties"
 }
+
+|Name|Description|Sample|Optional|
+|-----|-----|-----|-----|
+|dist_file|Target file path||False|
+|content|Parameter key to store content to write into target files||False|
+|container|Container key to store content to write into target files||False|
 
 #### ContentReplacementTask
 
@@ -277,6 +292,13 @@ Tasks of class ContentReplacementTask are to replace text and set it to a parame
 }
 ```
 
+|Name|Description|Sample|Optional|
+|-----|-----|-----|-----|
+|text|Text to be replaced||False|
+|content|Parameter key to store replacement result||True|
+|container|Container key to store replacement result||True|
+
+
 #### JsonTransferTask
 
 Tasks of class JsonTransferTask are to transfer text into json and load it into a parameter or container.
@@ -289,6 +311,12 @@ Tasks of class JsonTransferTask are to transfer text into json and load it into 
 }
 ```
 
+|Name|Description|Sample|Optional|
+|-----|-----|-----|-----|
+|text|Text to be replaced and translated into json||False|
+|content|Parameter key to store json result||True|
+|container|Container key to store json result||True|
+
 #### ParameterRemoveTask
 
 Tasks of class ParameterRemoveTask are to remove a parameter from task parameter dictionary.
@@ -300,18 +328,64 @@ Tasks of class ParameterRemoveTask are to remove a parameter from task parameter
 }
 ```
 
+|Name|Description|Sample|Optional|
+|-----|-----|-----|-----|
+|text|Text to be replaced and translated into json||False|
+|content|Parameter key to store json result||True|
+|container|Container key to store json result||True|
+
 #### FieldMappingTask
 
 Tasks of class FieldMappingTask are for mapping fields from one parameter to another.
 
+```json
+"record_mapping": {
+	"data_object": "stock_record",
+	"class_name": "bingdog.task|task.FieldMappingTask",
+	"content": "stock_record_dict",
+	"mapping": {
+		"close_price": "3",
+		"highest_price": "4",
+		"lowest_price": "5",
+		"opening_price": "6",
+		"last_close_price": "7",
+		"change_value": "8",
+		"change_percent": "9",
+		"turnover_ratio": "10",
+		"turnover_amount": "11",
+		"turnover_qty": "12",
+		"total_cap": "13",
+		"cap": "14"
+	}
+}
+```
+|Name|Description|Sample|Optional|
+|-----|-----|-----|-----|
+|data_object|Parameter key to store data object to be mapped||True|
+|content|Parameter key to store data object after mapped||True|
+|mapping|Field mapping configuration||True| 
 
 #### ContainerUnpackTask
 
 Tasks of class ContainerUnpackTask are to get parameter from container.
 
+```json
+"fetch": {
+	"class_name": "bingdog.task|task.ContainerUnpackTask",
+	"container": "value",
+	"content": "value"
+}
+```
+
+|Name|Description|Sample|Optional|
+|-----|-----|-----|-----|
+|container|Container key to store the value to be fetched||True|
+|content|Parameter key to store the fetched value||True|
+
 ## TaskHandler
 
 Task handlers are used to manage sub tasks for parent tasks. One parent task is only mapped to one task handler. 
+
 
 ``` python
 "csv_fetch": {
@@ -326,6 +400,10 @@ Task handlers are used to manage sub tasks for parent tasks. One parent task is 
 	}
 }
 ```
+
+|Name|Description|Sample|Optional|
+|-----|-----|-----|-----|
+|container|Container key to 
 
 Task Handlers of class 
 
