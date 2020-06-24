@@ -60,6 +60,13 @@ class ConfiguredTaskHandler(TaskHandler):
         super().__init__(nestedObj)
         self._configuredUtil = configuredUtil
     
+    def run(self):
+        parameters = self._configuredUtil.getParameters(self._nestedObj.taskId)
+        if parameters:
+            for key in parameters:
+                self._nestedObj.params[key] = parameters[key]
+        super().run()
+                
     def _getNextTask(self):
         nextTaskId = self._configuredUtil.getNextTaskId(self._nestedObj.taskId)
         if nextTaskId is not None:
